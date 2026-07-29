@@ -1,0 +1,58 @@
+# ===========================
+# Python
+# ===========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Model Weights
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.onnx
+
+# Dataset
+datasets/
+archive/
+
+# Temporary
+*.tmp
+*.bak
+
+# OS Files
+Thumbs.db
+.DS_Store
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Build
+build/
+dist/
+
+# TensorBoard
+runs/
+
+# Media
+*.mp3
+*.wav
+*.aac
+
+# Ignore evaluation outputs
+evaluation/**/failure_gallery/

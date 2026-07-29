@@ -1,0 +1,36 @@
+PrismShieldAI Evaluation Summary
+============================================================
+
+Checkpoint          : fusion_best_v3_reasoning_final.pth
+Best Epoch          : 21
+Best Validation F1  : 0.9306
+
+Accuracy            : 0.9904
+Balanced Accuracy   : 0.9871
+Precision           : 0.8742
+Recall              : 0.9832
+F1 Score            : 0.9255
+ROC AUC             : 0.9983
+PR AUC              : 0.9493
+MCC                 : 0.9222
+
+Average Loss        : 0.2316
+Classification Loss : 0.1061
+Contrastive Loss    : 1.0699
+Confidence Loss     : 0.0922
+
+Samples Evaluated   : 8897
+Evaluation Time     : 101.51 sec
+Checkpoint          : fusion_best_v3_reasoning_final.pth
+Total Parameters    : 102,726,469
+
+Generated Files:
+----------------------------
+classification_report_test.txt
+test_predictions.csv
+evaluation_metrics.json
+confidence_statistics.json
+confusion_matrix.png
+roc_curve.png
+precision_recall_curve.png
+confidence_histogram.png

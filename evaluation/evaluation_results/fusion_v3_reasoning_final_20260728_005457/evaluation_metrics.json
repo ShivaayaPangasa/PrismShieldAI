@@ -1,0 +1,18 @@
+{
+    "loss": 0.23155058159273872,
+    "classification_loss": 0.10612989701932594,
+    "contrastive_loss": 1.0698800874034635,
+    "confidence_loss": 0.09216336647858327,
+    "accuracy": 0.9904462178262335,
+    "balanced_accuracy": 0.9870746571863891,
+    "precision": 0.8741721854304636,
+    "recall": 0.9832402234636871,
+    "f1": 0.9255039439088519,
+    "roc_auc": 0.9983447381786106,
+    "pr_auc": 0.9493003024370696,
+    "mcc": 0.9222348057748204,
+    "best_epoch": 21,
+    "best_validation_f1": 0.9305680793507665,
+    "evaluation_time_seconds": 101.50554823875427,
+    "num_test_samples": 8897
+}
