@@ -16,7 +16,7 @@ Cross Modal Attention
 Contrastive Alignment
 ↓
 
-Causal Reasoning
+Adaptive Evidence Reasoning
 ↓
 
 Final Classification
@@ -32,7 +32,7 @@ from models.visual_encoder import VisualEncoder
 
 from models.cross_modal_attention import CrossModalAttention
 from models.contrastive_head import ContrastiveHead
-from models.causal_reasoning import CausalReasoning
+from models.adaptive_evidence_reasoning import AdaptiveEvidenceReasoning
 
 
 class FusionModel(nn.Module):
@@ -62,8 +62,8 @@ class FusionModel(nn.Module):
         self.cross_attention = CrossModalAttention()
 
         self.contrastive = ContrastiveHead()
-
-        self.reasoning = CausalReasoning()
+        
+        self.reasoning = AdaptiveEvidenceReasoning()
 
         # --------------------------------------------------
         # Final Classifier
@@ -157,12 +157,6 @@ class FusionModel(nn.Module):
             attention_mask,
 
         )
-        
-        print("\nAudio Embedding")
-        print("Mean :", audio_embedding.mean().item())
-        print("Std  :", audio_embedding.std().item())
-        print("Min  :", audio_embedding.min().item())
-        print("Max  :", audio_embedding.max().item())
 
         visual_embedding = self.visual_encoder.extract_embedding(
 
@@ -170,12 +164,6 @@ class FusionModel(nn.Module):
 
         )
         
-        print("\nVisual Embedding")
-        print("Mean :", visual_embedding.mean().item())
-        print("Std  :", visual_embedding.std().item())
-        print("Min  :", visual_embedding.min().item())
-        print("Max  :", visual_embedding.max().item())
-
         # ==================================================
         # Cross Modal Attention
         # ==================================================
@@ -219,7 +207,7 @@ class FusionModel(nn.Module):
         )
 
         # ==================================================
-        # Causal Reasoning
+        # Adaptive Evidence Reasoning
         # ==================================================
 
         reasoning = self.reasoning(
@@ -247,15 +235,6 @@ class FusionModel(nn.Module):
 
         confidence = reasoning["confidence"]
         
-        print("\nReasoning Embedding")
-        print("Mean :", reasoning_embedding.mean().item())
-        print("Std  :", reasoning_embedding.std().item())
-        print("Min  :", reasoning_embedding.min().item())
-        print("Max  :", reasoning_embedding.max().item())
-
-        print("\nConfidence")
-        print(confidence.detach().cpu())
-
         # ==================================================
         # Classification
         # ==================================================
@@ -287,6 +266,10 @@ class FusionModel(nn.Module):
             "audio_attention": audio_weights,
 
             "visual_attention": visual_weights,
+
+            "audio_importance": reasoning["audio_importance"],
+
+            "visual_importance": reasoning["visual_importance"],
 
         }
 
