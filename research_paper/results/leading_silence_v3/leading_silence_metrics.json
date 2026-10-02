@@ -1,0 +1,24 @@
+{
+  "checkpoint": "fusion_best_v3_reasoning_final.pth",
+  "checkpoint_epoch": 21,
+  "test_samples": 8897,
+  "mean_trim_seconds": 0.003429245813195459,
+  "median_trim_seconds": 0.0,
+  "p95_trim_seconds": 0.02,
+  "accuracy": 0.989771833202203,
+  "balanced_accuracy": 0.9858445154277262,
+  "f1_fake": 0.9205240174672489,
+  "macro_f1": 0.9575291118629415,
+  "roc_auc": 0.9983343802624897,
+  "pr_auc": 0.9479861866551581,
+  "mcc": 0.9170958374021057,
+  "delta_vs_original": {
+    "accuracy": -0.0006743846240305773,
+    "balanced_accuracy": -0.0012301417586628727,
+    "f1_fake": -0.004979926441603055,
+    "macro_f1": -0.002670767375457239,
+    "roc_auc": -1.0357916120917743e-05,
+    "pr_auc": -0.00131411578191154,
+    "mcc": -0.0051389683727147695
+  }
+}
