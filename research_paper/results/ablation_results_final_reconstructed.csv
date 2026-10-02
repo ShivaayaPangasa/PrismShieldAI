@@ -1,0 +1,7 @@
+Configuration,Balanced Accuracy,Fake F1
+Visual,96.02206,66.4151
+Audio,66.90385,18.394
+Audio-Visual,98.58364,94.4245
+Contrastive,98.52981,93.6664
+AER,98.51187,93.4164
+Full,98.49053,94.3294
