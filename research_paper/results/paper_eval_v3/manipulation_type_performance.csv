@@ -1,0 +1,5 @@
+manipulation_type,samples,accuracy,balanced_accuracy,macro_f1,roc_auc,mcc
+FakeVideo-FakeAudio,2670,1.0,,,,
+FakeVideo-RealAudio,5192,0.9909476117103235,,,,
+RealVideo-FakeAudio,498,0.9417670682730924,,,,
+RealVideo-RealAudio,537,0.9832402234636871,,,,
