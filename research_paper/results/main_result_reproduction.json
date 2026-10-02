@@ -1,0 +1,33 @@
+{
+    "experiment": "main_result_reproduction",
+    "checkpoint": "C:\\Users\\Shivaaya\\Desktop\\Prism_AI\\PrsimShieldAI\\weights\\fusion_best_v3_reasoning_final.pth",
+    "checkpoint_epoch": 21,
+    "checkpoint_best_score": 0.9305680793507665,
+    "test_samples": 8897,
+    "accuracy": 0.9903338203888952,
+    "balanced_accuracy": 0.9861435584899272,
+    "precision": 0.8739635157545605,
+    "recall": 0.9813780260707635,
+    "f1": 0.9245614035087719,
+    "macro_f1": 0.9596987394630445,
+    "roc_auc": 0.9983441813013998,
+    "pr_auc": 0.9481577405227946,
+    "mcc": 0.9211792384696376,
+    "confusion_matrix": [
+        [
+            8284,
+            76
+        ],
+        [
+            10,
+            527
+        ]
+    ],
+    "ece": 0.005588014494023512,
+    "brier_score": 0.009294839371614192,
+    "confidence_brier": 0.009105989535442293,
+    "confidence_mean": 0.9989175200462341,
+    "confidence_median": 0.9999446868896484,
+    "confidence_min": 0.5057469010353088,
+    "confidence_max": 0.9999486207962036
+}

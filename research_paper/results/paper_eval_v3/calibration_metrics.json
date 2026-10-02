@@ -1,0 +1,12 @@
+{
+  "confidence_head": {
+    "interpretation": "learned correctness estimator",
+    "ece": 0.008767384283325819,
+    "brier": 0.009096959554520674
+  },
+  "classification_probability": {
+    "interpretation": "softmax probability for Fake (class 1)",
+    "ece": 0.0056512255223281245,
+    "brier": 0.009271738024020692
+  }
+}
