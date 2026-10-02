@@ -5,8 +5,7 @@ PrismShieldAI
 
 Enterprise Multimodal Deepfake Detection Platform
 
-Causal and Contrastive Multimodal Reasoning
-for Robust Deep Fake Detection
+Contrastive and Adaptive Multimodal Evidence Reasoning for Audio-Visual Deepfake Detection
 
 Author:
 Shivaaya
@@ -471,11 +470,11 @@ Cross-Modal Attention
 
 ---
 
-**Reasoning**
+**Evidence Reasoning**
 
 Contrastive Learning
 
-Causal Reasoning
+Adaptive Evidence Reasoning (AER)
 
 """)
 
@@ -520,12 +519,13 @@ with hero_left:
 
 ## Enterprise Multimodal Deepfake Detection
 
-### Causal and Contrastive Multimodal Reasoning
-### for Robust Deepfake Detection
+### Contrastive and Adaptive Multimodal Evidence Reasoning
+### for Audio-Visual Deepfake Detection
 
 PrismShieldAI combines computer vision, speech understanding,
-cross-modal attention, contrastive learning and causal reasoning
-to detect manipulated multimedia content with a unified AI pipeline.
+embedding-level bidirectional cross-modal interaction, contrastive
+learning and Adaptive Evidence Reasoning (AER) to analyze potentially
+manipulated audio-visual content through a unified AI pipeline.
 
 Designed for
 
@@ -552,7 +552,7 @@ with hero_right:
 
 ✅ Contrastive Fusion
 
-✅ Causal Reasoning
+✅ Adaptive Evidence Reasoning (AER)
 
 </div>
 """,
@@ -649,13 +649,13 @@ with card4:
         """
 <div class="card">
 
-# 🧠 Reasoning
+# 🧠 Evidence Reasoning
 
-Causal Analysis
+Adaptive Evidence Reasoning (AER)
 
-Confidence Head
+Learned Correctness-Estimation Head
 
-Authenticity Prediction
+Real/Fake Prediction
 
 </div>
 """,
@@ -843,45 +843,7 @@ PrismShieldAI will automatically:
                     )
 
                     st.divider()
-                    
-                    st.subheader("⚙ Processing Pipeline")
-
-                    st.markdown("""
-                    **Video**
-
-                        ↓
-
-                    **Frame Selection**
-
-                        ↓
-
-                    **Audio Extraction**
-
-                        ↓
-
-                    **Image Preprocessing**
-
-                        ↓
-
-                    **Audio Preprocessing**
-
-                        ↓
-
-                    **Cross-Modal Attention**
-
-                        ↓
-
-                    **Contrastive Learning**
-
-                        ↓
-
-                    **Causal Reasoning**
-
-                        ↓
-
-                    # ✅ Prediction
-                    """)
-
+                
                     st.metric(
                         "Processing Time",
                         f"{elapsed:.2f} sec",
@@ -1060,50 +1022,45 @@ with analysis_tab:
                 )
                 
                 elapsed = time.perf_counter() - start
-        
+                
             # ==========================================================
             # RESULTS
             # ==========================================================
 
+            # Stop immediately if inference failed
             if result["status"] != "success":
-                
+
                 st.error(result["error"])
-        
-            else:
 
-                st.success("Analysis Complete")
+                # Remove temporary files before stopping
+                image_path.unlink(missing_ok=True)
+                audio_path.unlink(missing_ok=True)
 
-                prediction = result["prediction"]
+                st.stop()
 
-                probability = result["probability"]
+            # Continue only if inference was successful
+            st.success("Analysis Complete")
 
-                confidence = result["confidence"]
+            prediction = result["prediction"]
+            probability = result["probability"]
+            confidence = result["confidence"]
 
-                col1, col2, col3 = st.columns(3)
+            col1, col2, col3 = st.columns(3)
 
-                col1.metric(
+            col1.metric(
+                "Prediction",
+                prediction,
+            )
 
-                    "Prediction",
+            col2.metric(
+                "Prediction Probability",
+                f"{probability * 100:.2f}%",
+            )
 
-                    prediction,
-
-                )
-
-                col2.metric(
-
-                    "Probability",
-
-                    f"{probability*100:.2f}%",
-
-                )
-
-                col3.metric(
-
-                    "Confidence",
-
-                    f"{confidence*100:.2f}%",
-
-                )
+            col3.metric(
+                "Fusion Confidence",
+                f"{confidence * 100:.2f}%",
+            )
 
             # ======================================================
             # VERDICT
@@ -1115,12 +1072,11 @@ with analysis_tab:
 
                 st.success(
                     """
-# ✅ AUTHENTIC MEDIA
+# ✅ MODEL PREDICTION: REAL
 
-PrismShieldAI did not detect significant multimodal
-inconsistencies.
+The model classified the uploaded media as REAL.
 
-The uploaded media appears authentic.
+This is a model prediction, not a guarantee of authenticity.
 """
                 )
 
@@ -1128,11 +1084,12 @@ The uploaded media appears authentic.
 
                 st.error(
                     """
-# ⚠ POTENTIAL DEEPFAKE DETECTED
+# ⚠ MODEL PREDICTION: POTENTIALLY FAKE
 
-PrismShieldAI identified multimodal inconsistencies.
+The model classified the uploaded media as potentially FAKE.
 
-The uploaded media may contain synthetic manipulation.
+This is a model prediction and should be reviewed with
+additional evidence where appropriate.
 """
                 )
 
@@ -1187,35 +1144,35 @@ The uploaded media may contain synthetic manipulation.
             # ======================================================
             # CONFIDENCE BAR
             # ======================================================
-
-            st.markdown("### 🎯 Prediction Confidence")
+            
+            st.markdown("### 🎯 Prediction Probability")
 
             st.progress(probability)
 
-            if probability >= 95:
+            if probability >= 0.95:
 
                 st.success(
-                    "Very High Prediction Confidence"
+                    "Very High Prediction Probability"
                 )
 
-            elif probability >= 80:
+            elif probability >= 0.80:
 
                 st.info(
-                    "High Prediction Confidence"
+                    "High Prediction Probability"
                 )
 
-            elif probability >= 60:
+            elif probability >= 0.60:
 
                 st.warning(
-                    "Moderate Prediction Confidence"
+                    "Moderate Prediction Probability"
                 )
 
             else:
 
                 st.error(
-                    "Low Prediction Confidence"
+                    "Low Prediction Probability"
                 )
-
+            
             st.divider()
 
             # ======================================================
@@ -1232,11 +1189,11 @@ The uploaded media may contain synthetic manipulation.
 
                     st.info(
 """
-The visual and speech representations remain
-consistent throughout multimodal fusion.
+The model's learned visual and speech
+representations contributed to the REAL prediction.
 
-No major evidence of synthetic manipulation
-was detected.
+This output does not independently verify
+the authenticity of the media.
 """
                     )
 
@@ -1244,11 +1201,12 @@ was detected.
 
                     st.warning(
 """
-The visual and speech representations exhibit
-cross-modal inconsistencies.
+The model's learned visual and speech
+representations contributed to the potentially
+FAKE prediction.
 
-This pattern is commonly associated with
-AI-generated or manipulated media.
+The prediction alone does not establish the
+specific evidence or mechanism of manipulation.
 """
                     )
 
@@ -1263,8 +1221,8 @@ AI-generated or manipulated media.
                 st.success("✔ Feature Extraction")
 
                 st.success("✔ Cross-Modal Fusion")
-
-                st.success("✔ Causal Reasoning")
+                
+                st.success("✔ Adaptive Evidence Reasoning (AER)")
 
                 st.success("✔ Inference Complete")
 
@@ -1279,11 +1237,11 @@ AI-generated or manipulated media.
                 st.write("Prediction:", prediction)
 
                 st.write(
-                    f"Prediction Probability: {probability:.2f}%"
+                    f"Prediction Probability: {probability * 100:.2f}%"
                 )
 
                 st.write(
-                    f"Fusion Confidence: {confidence:.2f}%"
+                    f"Fusion Confidence: {confidence * 100:.2f}%"
                 )
 
                 st.write(
@@ -1312,7 +1270,7 @@ AI-generated or manipulated media.
 
                 st.write(
                     "Reasoning:",
-                    "Contrastive + Causal",
+                    "Contrastive Learning + Adaptive Evidence Reasoning (AER)",
                 )
 
             # ======================================================
@@ -1326,10 +1284,10 @@ Prediction:
 {prediction}
 
 Prediction Probability:
-{probability:.2f}%
+{probability * 100:.2f}%
 
 Fusion Confidence:
-{confidence:.2f}%
+{confidence * 100:.2f}%
 
 Processing Time:
 {elapsed:.2f} sec
@@ -1434,10 +1392,11 @@ st.divider()
 with st.expander("About PrismShieldAI"):
 
     st.markdown(
-        
-        '''PrismShieldAI is a multimodal deepfake detection platform that integrates
-computer vision, speech understanding, cross-modal attention,
-contrastive learning and causal reasoning for robust multimedia authentication.
+
+'''PrismShieldAI is a multimodal deepfake detection platform that integrates
+computer vision, speech understanding, embedding-level bidirectional
+cross-modal interaction, contrastive learning and Adaptive Evidence
+Reasoning (AER) to analyze potentially manipulated audio-visual media.
 
 ### Current Architecture
 
@@ -1449,7 +1408,7 @@ contrastive learning and causal reasoning for robust multimedia authentication.
 
 • Contrastive Learning Module
 
-• Causal Reasoning Module
+• Adaptive Evidence Reasoning (AER) Module
 
 • Fusion Model
 
@@ -1508,7 +1467,7 @@ with stat4:
 
         "Reasoning",
         
-        "Causal + Confidence",
+        "AER + Confidence",
 
     )
 
@@ -1565,7 +1524,8 @@ Research Prototype
 st.caption(
 """
 PrismShieldAI is a research prototype developed for multimodal
-deepfake detection using causal reasoning and contrastive learning.
+deepfake detection using contrastive learning and Adaptive Evidence
+Reasoning (AER).
 
 Future releases will include Explainable AI, Cross-Dataset Validation, Real-time Monitoring and Enterprise Deployment
 """

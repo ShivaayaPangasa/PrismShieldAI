@@ -10,6 +10,7 @@ Single source of truth for the entire project.
 """
 
 from pathlib import Path
+import shutil
 import torch
 
 # ==============================================================
@@ -68,11 +69,8 @@ RUNS_DIR.mkdir(exist_ok=True)
 # FFMPEG
 # ==============================================================
 
-FFMPEG_PATH = Path(
-
-    r"C:\Users\Shivaaya\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe"
-
-)
+# Find FFmpeg from the system PATH instead of a fixed location
+FFMPEG_PATH = Path(shutil.which("ffmpeg") or "ffmpeg")
 
 # ==============================================================
 # DATASET
