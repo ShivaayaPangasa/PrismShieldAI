@@ -3,7 +3,7 @@ PrismShieldAI - Final paper evaluation / artifact generator
 
 One held-out TEST pass generates:
 - headline metrics + class-wise metrics + Macro-F1
-- predictions.csv
+- test_predictions_final.csv
 - ROC + PR combined figure
 - confidence-head + class-probability calibration (ECE/Brier)
 - reliability diagram
@@ -136,7 +136,12 @@ def spectrogram(ax, path):
             ax.text(0.5, 0.5, "empty audio", ha="center", va="center")
             ax.axis("off")
             return
-        f, t, sxx = signal.spectrogram(audio, fs=sr, nperseg=min(512, len(audio)), noverlap=256)
+        
+        nperseg = min(512, len(audio))
+        noverlap = min(256, nperseg // 2)
+
+        f , t, sxx = signal.spectrogram(
+        audio, fs=sr, nperseg=nperseg, noverlap=noverlap)
         sxx_db = 10 * np.log10(sxx + 1e-10)
         ax.pcolormesh(t, f, sxx_db, shading="auto")
         ax.set_ylim(0, min(8000, sr / 2))
@@ -153,15 +158,25 @@ def build_failure_gallery(pred_df):
     gallery_dir.mkdir(parents=True, exist_ok=True)
 
     correct = pred_df[pred_df["correct"]].copy()
-    false_real = pred_df[(pred_df["true_label"] == 1) & (pred_df["prediction"] == 0)].copy()
-    false_fake = pred_df[(pred_df["true_label"] == 0) & (pred_df["prediction"] == 1)].copy()
+    
+    # Real samples incorrectly predicted as Fake
+    real_predicted_fake = pred_df[
+        (pred_df["true_label"] == 1) &
+        (pred_df["prediction"] == 0)
+    ].copy()
+
+    # Fake samples incorrectly predicted as Real
+    fake_predicted_real = pred_df[
+        (pred_df["true_label"] == 0) &
+        (pred_df["prediction"] == 1)
+    ].copy()
 
     selections = {}
     if not correct.empty:
         selections["correct_high_confidence"] = correct.sort_values("confidence", ascending=False).head(1)
         selections["correct_low_confidence"] = correct.sort_values("confidence", ascending=True).head(1)
-    selections["false_real"] = false_real.head(1)
-    selections["false_fake"] = false_fake.head(1)
+    selections["real_predicted_fake"] = real_predicted_fake.head(1)
+    selections["fake_predicted_real"] = fake_predicted_real.head(1)
 
     for name, group in selections.items():
         if group.empty:
@@ -183,8 +198,8 @@ def build_failure_gallery(pred_df):
         text = (
             f"Category: {name}\n"
             f"sample_id={row['sample_id']} | video_id={row['video_id']}\n"
-            f"GT={'Fake' if row['true_label'] == 1 else 'Real'} | "
-            f"Pred={'Fake' if row['prediction'] == 1 else 'Real'}\n"
+            f"GT={'Fake' if row['true_label'] == 0 else 'Real'} | "
+            f"Pred={'Fake' if row['prediction'] == 0 else 'Real'}\n"
             f"Fake probability={row['fake_probability']:.4f}\n"
             f"Learned confidence={row['confidence']:.4f}\n"
             f"α_audio={row['alpha_audio']:.4f} | α_visual={row['alpha_visual']:.4f}"
@@ -243,7 +258,7 @@ def main():
                     images=images,
                 )
                 logits = out["logits"]
-                p_fake = torch.softmax(logits, dim=1)[:, 1]
+                p_fake = torch.softmax(logits, dim=1)[:, 0]
                 pred = logits.argmax(dim=1)
 
             conf = out["confidence"].view(-1)
@@ -289,42 +304,95 @@ def main():
     y = pred_df["true_label"].to_numpy()
     p = pred_df["prediction"].to_numpy()
     prob = pred_df["fake_probability"].to_numpy()
+    
+    label_text = pred_df["label"].astype(str).str.strip().str.lower()
+
+    if not label_text.isin(["fake", "real"]).all():
+        raise ValueError("Unexpected text labels found in test metadata.")
+
+    expected_labels = label_text.map({"fake": 0, "real": 1}).to_numpy()
+
+    if not np.array_equal(y, expected_labels):
+        raise ValueError(
+            "Numeric labels do not match metadata labels. "
+            "Expected 0=Fake and 1=Real."
+    )
+     
     conf = pred_df["confidence"].to_numpy()
     correct = pred_df["correct"].to_numpy().astype(float)
+    
+    # Numeric class mapping: 0 = Fake, 1 = Real
+    fake_true = (y == 0).astype(int)
 
     cm = confusion_matrix(y, p, labels=[0, 1])
+
     metrics = {
         "accuracy": float(accuracy_score(y, p)),
         "balanced_accuracy": float(balanced_accuracy_score(y, p)),
-        "precision_real": float(precision_score(y, p, pos_label=0, zero_division=0)),
-        "recall_real": float(recall_score(y, p, pos_label=0, zero_division=0)),
-        "f1_real": float(f1_score(y, p, pos_label=0, zero_division=0)),
-        "precision_fake": float(precision_score(y, p, pos_label=1, zero_division=0)),
-        "recall_fake": float(recall_score(y, p, pos_label=1, zero_division=0)),
-        "f1_fake": float(f1_score(y, p, pos_label=1, zero_division=0)),
-        "macro_f1": float(f1_score(y, p, average="macro", zero_division=0)),
-        "roc_auc": float(roc_auc_score(y, prob)),
-        "pr_auc": float(average_precision_score(y, prob)),
+
+        "precision_fake": float(
+            precision_score(y, p, pos_label=0, zero_division=0)
+        ),
+        "recall_fake": float(
+            recall_score(y, p, pos_label=0, zero_division=0)
+        ),
+        "f1_fake": float(
+            f1_score(y, p, pos_label=0, zero_division=0)
+        ),
+
+        "precision_real": float(
+            precision_score(y, p, pos_label=1, zero_division=0)
+        ),
+        "recall_real": float(
+            recall_score(y, p, pos_label=1, zero_division=0)
+        ),
+        "f1_real": float(
+            f1_score(y, p, pos_label=1, zero_division=0)
+        ),
+
+        "macro_f1": float(
+            f1_score(y, p, average="macro", zero_division=0)
+        ),
+
+        "roc_auc": float(roc_auc_score(fake_true, prob)),
+        "pr_auc": float(average_precision_score(fake_true, prob)),
         "mcc": float(matthews_corrcoef(y, p)),
+
         "num_test_samples": int(len(y)),
-        "num_real": int((y == 0).sum()),
-        "num_fake": int((y == 1).sum()),
+        "num_fake": int((y == 0).sum()),
+        "num_real": int((y == 1).sum()),
         "best_checkpoint_epoch": int(ckpt.get("epoch", -1)),
-    }
+    }    
 
     report = classification_report(
-        y, p, target_names=["Real", "Fake"], digits=4, zero_division=0
+        y,
+        p,
+        labels=[0, 1],
+        target_names=["Fake", "Real"],
+        digits=4,
+        zero_division=0
     )
-    (RESULTS / "classification_report.txt").write_text(report, encoding="utf-8")
+
+    (RESULTS / "classification_report.txt").write_text(
+        report,
+        encoding="utf-8"
+    )    
 
     # Calibration: confidence head against correctness target.
-    confidence_ece, conf_bins = ece_from_confidence(conf, correct, n_bins=10)
+    confidence_ece, conf_bins = ece_from_confidence(
+        conf, correct, n_bins=10
+    )
     confidence_brier = float(np.mean((conf - correct) ** 2))
 
-    # Standard classification calibration: predicted class confidence vs correctness.
+    # Classification calibration:
+    # prob is P(Fake), and fake_true is 1 for Fake, 0 for Real.
     max_prob = np.maximum(prob, 1.0 - prob)
-    class_ece, class_bins = ece_from_confidence(max_prob, correct, n_bins=10)
-    class_brier = float(np.mean((prob - y) ** 2))
+
+    class_ece, class_bins = ece_from_confidence(
+        max_prob, correct, n_bins=10
+    )
+
+    class_brier = float(np.mean((prob - fake_true) ** 2))
 
     calibration = {
         "confidence_head": {
@@ -333,7 +401,7 @@ def main():
             "brier": confidence_brier,
         },
         "classification_probability": {
-            "interpretation": "softmax probability for Fake (class 1)",
+            "interpretation": "softmax probability for Fake (class 0)",
             "ece": class_ece,
             "brier": class_brier,
         },
@@ -380,10 +448,11 @@ def main():
     plt.tight_layout()
     fig.savefig(RESULTS / "selective_risk.png", dpi=300)
     plt.close(fig)
+    
+    # ROC + PR curves with Fake as the positive class.
+    fpr, tpr, _ = roc_curve(fake_true, prob)
+    prec, rec, _ = precision_recall_curve(fake_true, prob)
 
-    # ROC + PR combined figure.
-    fpr, tpr, _ = roc_curve(y, prob)
-    prec, rec, _ = precision_recall_curve(y, prob)
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     axes[0].plot(fpr, tpr, label=f"AUC={metrics['roc_auc']:.4f}")
     axes[0].plot([0, 1], [0, 1], linestyle="--")
@@ -405,8 +474,10 @@ def main():
     # Confusion matrix.
     fig, ax = plt.subplots(figsize=(6, 6))
     im = ax.imshow(cm)
-    ax.set_xticks([0, 1], ["Real", "Fake"])
-    ax.set_yticks([0, 1], ["Real", "Fake"])
+    
+    ax.set_xticks([0, 1], ["Fake", "Real"])
+    ax.set_yticks([0, 1], ["Fake", "Real"])
+    
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
     ax.set_title("PrismShieldAI Test Confusion Matrix")
@@ -459,7 +530,7 @@ def main():
     ]
     fig, axes = plt.subplots(2, 2, figsize=(10, 9))
     for ax, xy, title in zip(axes.ravel(), chunks, titles):
-        for cls, name in [(0, "Real"), (1, "Fake")]:
+        for cls, name in [(0, "Fake"), (1, "Real")]:
             mask = labels_tsne == cls
             ax.scatter(xy[mask, 0], xy[mask, 1], s=8, alpha=0.55, label=name)
         ax.set_title(title)
@@ -514,10 +585,15 @@ def main():
         plt.close(fig)
 
     # Manipulation-type performance.
+    # Numeric class mapping: 0 = Fake, 1 = Real.
     mt_rows = []
+
     for mt, g in pred_df.groupby("manipulation_type"):
         yy = g["true_label"].to_numpy()
         pp = g["prediction"].to_numpy()
+        fake_prob = g["fake_probability"].to_numpy()
+        fake_target = (yy == 0).astype(int)
+
         row = {
             "manipulation_type": mt,
             "samples": int(len(g)),
@@ -527,7 +603,7 @@ def main():
             row.update({
                 "balanced_accuracy": float(balanced_accuracy_score(yy, pp)),
                 "macro_f1": float(f1_score(yy, pp, average="macro", zero_division=0)),
-                "roc_auc": float(roc_auc_score(yy, g["fake_probability"])),
+                "roc_auc": float(roc_auc_score(fake_target, fake_prob)),
                 "mcc": float(matthews_corrcoef(yy, pp)),
             })
         else:
