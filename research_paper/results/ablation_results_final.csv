@@ -1,0 +1,2 @@
+configuration,mode,epochs_max,best_epoch,best_validation_f1,test_samples,balanced_accuracy,f1_fake,f1_real,macro_f1,roc_auc,mcc
+Full PrismShieldAI,full,30,11,0.9419354838709677,8897,0.9849052863239867,0.9432943294329433,0.9962237007732422,0.9697590151030928,0.9922669802999118,0.9401156933831056
