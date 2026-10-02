@@ -1,19 +1,19 @@
 {
   "accuracy": 0.9904462178262335,
   "balanced_accuracy": 0.9870746571863891,
-  "precision_real": 0.9989147473773061,
-  "recall_real": 0.990909090909091,
-  "f1_real": 0.9948958145679457,
-  "precision_fake": 0.8741721854304636,
-  "recall_fake": 0.9832402234636871,
-  "f1_fake": 0.9255039439088519,
+  "precision_fake": 0.9989147473773061,
+  "recall_fake": 0.990909090909091,
+  "f1_fake": 0.9948958145679457,
+  "precision_real": 0.8741721854304636,
+  "recall_real": 0.9832402234636871,
+  "f1_real": 0.9255039439088519,
   "macro_f1": 0.9601998792383988,
   "roc_auc": 0.9983447381786106,
-  "pr_auc": 0.9493003024370696,
+  "pr_auc": 0.9998952246410583,
   "mcc": 0.9222348057748204,
   "num_test_samples": 8897,
-  "num_real": 8360,
-  "num_fake": 537,
+  "num_fake": 8360,
+  "num_real": 537,
   "best_checkpoint_epoch": 21,
   "confusion_matrix": [
     [
@@ -32,9 +32,9 @@
       "brier": 0.009096959554520674
     },
     "classification_probability": {
-      "interpretation": "softmax probability for Fake (class 1)",
-      "ece": 0.0056512255223281245,
-      "brier": 0.009271738024020692
+      "interpretation": "softmax probability for Fake (class 0)",
+      "ece": 0.00565122689701546,
+      "brier": 0.009271738113787384
     }
   }
 }
