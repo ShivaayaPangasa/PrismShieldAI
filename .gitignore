@@ -56,3 +56,7 @@ runs/
 
 # Ignore evaluation outputs
 evaluation/**/failure_gallery/
+processed_audio/
+processed_dataset/
+processed_faces/
+processed_frames/

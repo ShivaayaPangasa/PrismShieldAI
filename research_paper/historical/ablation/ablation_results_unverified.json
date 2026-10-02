@@ -1,0 +1,128 @@
+{
+  "study": "PrismShieldAI component-wise ablation study",
+  "seed": 42,
+  "device": "cuda",
+  "checkpoint": "C:\\Users\\Shivaaya\\Desktop\\Prism_AI\\PrsimShieldAI\\weights\\fusion_best_v3_reasoning_final.pth",
+  "dataset_csv": "C:\\Users\\Shivaaya\\Desktop\\Prism_AI\\PrsimShieldAI\\processed_dataset\\research_dataset.csv",
+  "epochs_per_configuration": 30,
+  "batch_size": 16,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.0001,
+  "temperature": 0.07,
+  "contrastive_weight": 0.1,
+  "evaluation_protocol": {
+    "training_split": "train",
+    "model_selection_split": "validation",
+    "final_evaluation_split": "test",
+    "test_used_for_training": false,
+    "test_used_for_model_selection": false,
+    "backbones_frozen": true,
+    "feature_extraction": "Pretrained audio and visual embeddings extracted from fusion_best_v3_reasoning_final.pth"
+  },
+  "configurations": [
+    {
+      "mode": "visual",
+      "description": "Visual encoder features followed by classifier."
+    },
+    {
+      "mode": "audio",
+      "description": "Audio encoder features followed by classifier."
+    },
+    {
+      "mode": "av",
+      "description": "Concatenated audio and visual features followed by classifier."
+    },
+    {
+      "mode": "contrastive",
+      "description": "Audio and visual projection heads with contrastive alignment and classification."
+    },
+    {
+      "mode": "aer",
+      "description": "Projected audio and visual representations processed by Adaptive Evidence Reasoning (existing CausalReasoning implementation)."
+    },
+    {
+      "mode": "full",
+      "description": "Projected audio and visual representations processed by AER with contrastive alignment."
+    }
+  ],
+  "results": [
+    {
+      "configuration": "Visual Only",
+      "mode": "visual",
+      "best_epoch": 1,
+      "best_validation_f1": 0.6076696165191741,
+      "train_samples": 5027,
+      "validation_samples": 8755,
+      "test_samples": 8897,
+      "balanced_accuracy": 0.9576067199486782,
+      "f1": 0.6628787878787878,
+      "roc_auc": 0.9743432190175795,
+      "mcc": 0.6764014056730263
+    },
+    {
+      "configuration": "Audio Only",
+      "mode": "audio",
+      "best_epoch": 22,
+      "best_validation_f1": 0.20075368276807126,
+      "train_samples": 5027,
+      "validation_samples": 8755,
+      "test_samples": 8897,
+      "balanced_accuracy": 0.5818153974321278,
+      "f1": 0.15636105188343993,
+      "roc_auc": 0.7037049040834692,
+      "mcc": 0.0892986331878443
+    },
+    {
+      "configuration": "Audio + Visual",
+      "mode": "av",
+      "best_epoch": 11,
+      "best_validation_f1": 0.9398907103825137,
+      "train_samples": 5027,
+      "validation_samples": 8755,
+      "test_samples": 8897,
+      "balanced_accuracy": 0.9852981075084868,
+      "f1": 0.936663693131133,
+      "roc_auc": 0.9980873495317776,
+      "mcc": 0.9333479139341326
+    },
+    {
+      "configuration": "+ Contrastive",
+      "mode": "contrastive",
+      "best_epoch": 24,
+      "best_validation_f1": 0.9413919413919414,
+      "train_samples": 5027,
+      "validation_samples": 8755,
+      "test_samples": 8897,
+      "balanced_accuracy": 0.9860158108577691,
+      "f1": 0.9467989179440938,
+      "roc_auc": 0.9940029893168676,
+      "mcc": 0.943801231138558
+    },
+    {
+      "configuration": "+ Adaptive Evidence Reasoning",
+      "mode": "aer",
+      "best_epoch": 1,
+      "best_validation_f1": 0.9398907103825137,
+      "train_samples": 5027,
+      "validation_samples": 8755,
+      "test_samples": 8897,
+      "balanced_accuracy": 0.9877923605356713,
+      "f1": 0.9353410097431355,
+      "roc_auc": 0.9947949800860709,
+      "mcc": 0.9322332736551282
+    },
+    {
+      "configuration": "Full PrismShieldAI",
+      "mode": "full",
+      "best_epoch": 11,
+      "best_validation_f1": 0.9429097605893186,
+      "train_samples": 5027,
+      "validation_samples": 8755,
+      "test_samples": 8897,
+      "balanced_accuracy": 0.9862550453075298,
+      "f1": 0.9502262443438914,
+      "roc_auc": 0.976252416847095,
+      "mcc": 0.9473572844671767
+    }
+  ]
+}

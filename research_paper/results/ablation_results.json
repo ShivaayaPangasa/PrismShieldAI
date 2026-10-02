@@ -1,0 +1,80 @@
+{
+  "description": "Recalculated ablation metrics from saved test predictions",
+  "label_mapping": {
+    "0": "Fake",
+    "1": "Real"
+  },
+  "probability_column_in_source_csv": "fake_probability",
+  "probability_semantics": "Real-class probability (class 1)",
+  "roc_auc_positive_class": "Real (label 1)",
+  "test_samples": 8897,
+  "test_sample_alignment_verified": true,
+  "metrics": [
+    {
+      "configuration": "VISUAL",
+      "n_test": 8897,
+      "accuracy": 0.9399797684612791,
+      "balanced_accuracy": 0.960220590200743,
+      "fake_f1": 0.9670451740311035,
+      "real_f1": 0.6641509433962264,
+      "macro_f1": 0.8155980587136649,
+      "roc_auc_real_positive": 0.9742830762788128,
+      "mcc": 0.6785835762003037
+    },
+    {
+      "configuration": "AUDIO",
+      "n_test": 8897,
+      "accuracy": 0.5990783410138248,
+      "balanced_accuracy": 0.6690385180829168,
+      "fake_f1": 0.7342620874618193,
+      "real_f1": 0.18393960192175704,
+      "macro_f1": 0.4591008446917882,
+      "roc_auc_real_positive": 0.7042346056863845,
+      "mcc": 0.16258330062727303
+    },
+    {
+      "configuration": "AV",
+      "n_test": 8897,
+      "accuracy": 0.9930313588850174,
+      "balanced_accuracy": 0.9858363850204486,
+      "fake_f1": 0.9962834192542861,
+      "real_f1": 0.9442446043165468,
+      "macro_f1": 0.9702640117854164,
+      "roc_auc_real_positive": 0.9984815072215837,
+      "mcc": 0.9411579949111637
+    },
+    {
+      "configuration": "CONTRASTIVE",
+      "n_test": 8897,
+      "accuracy": 0.9920197819489716,
+      "balanced_accuracy": 0.9852981075084868,
+      "fake_f1": 0.9957416181850897,
+      "real_f1": 0.936663693131133,
+      "macro_f1": 0.9662026556581114,
+      "roc_auc_real_positive": 0.9975107588677128,
+      "mcc": 0.9333479139341326
+    },
+    {
+      "configuration": "AER",
+      "n_test": 8897,
+      "accuracy": 0.9916825896369563,
+      "balanced_accuracy": 0.9851186816711662,
+      "fake_f1": 0.9955608878224355,
+      "real_f1": 0.9341637010676157,
+      "macro_f1": 0.9648622944450256,
+      "roc_auc_real_positive": 0.9773048034000695,
+      "mcc": 0.9307835818247322
+    },
+    {
+      "configuration": "FULL",
+      "n_test": 8897,
+      "accuracy": 0.992918961447679,
+      "balanced_accuracy": 0.9849052863239867,
+      "fake_f1": 0.9962237007732422,
+      "real_f1": 0.9432943294329433,
+      "macro_f1": 0.9697590151030928,
+      "roc_auc_real_positive": 0.9922669802999118,
+      "mcc": 0.9401156933831056
+    }
+  ]
+}
