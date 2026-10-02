@@ -2,79 +2,85 @@
 
 ### Contrastive and Adaptive Multimodal Evidence Reasoning for Audio-Visual Deepfake Detection
 
-PrismShieldAI is a research prototype for audio-visual deepfake detection. It combines visual and speech representations to investigate whether joint audiovisual evidence can support the classification of authentic and manipulated media.
+PrismShieldAI is a research prototype for audio-visual deepfake detection. It combines visual and speech representations to investigate how multimodal evidence can support the classification of authentic and manipulated media.
 
-The framework brings together pretrained feature encoders, embedding-level cross-modal interaction, contrastive representation learning, adaptive evidence reasoning, and a learned correctness-estimation head. It also includes an inference pipeline and an interactive Streamlit dashboard.
+The framework brings together pretrained feature encoders, embedding-level cross-modal interaction, contrastive representation learning, adaptive evidence reasoning, and a learned correctness-estimation head. It also includes a video inference pipeline and an interactive Streamlit dashboard.
 
-**Research status:** Experimental evaluation on FakeAVCeleb is complete for the current model version. The research manuscript is being prepared. Cross-dataset generalization and fine-grained temporal audio-visual alignment have not been evaluated.
+**Research status:** The current model has been evaluated on a processed FakeAVCeleb dataset partition. Cross-dataset generalization, identity-disjoint evaluation, and fine-grained temporal audio-visual alignment have not been established.
 
 ---
 
 ## Overview
 
-Synthetic media can contain manipulation cues in the visual stream, audio stream, or both. PrismShieldAI explores a multimodal approach that processes visual and audio inputs separately, interacts their global representations, and combines them for final classification.
+Synthetic media may contain manipulation cues in the visual stream, the audio stream, or both. PrismShieldAI processes audio and visual inputs through separate encoders, interacts their global representations, and combines them for binary classification.
 
 ### Key components
 
-* **Visual encoder:** EfficientNet-B0 for facial image representation.
-* **Audio encoder:** Wav2Vec2 for speech/audio representation.
-* **Cross-modal interaction:** Bidirectional embedding-level interaction between global audio and visual representations.
-* **Contrastive learning:** Separate projection heads and a symmetric InfoNCE objective to encourage corresponding audio and visual representations to share a latent space.
-* **Adaptive Evidence Reasoning (AER):** Learns modality-specific evidence transformations, interaction features, and sample-dependent modality importance weights.
-* **Classifier:** Predicts the final binary class from the fused reasoning representation.
-* **Correctness-estimation head:** Produces a learned estimate related to prediction correctness; it should not be interpreted as a guarantee of calibrated confidence.
-* **Inference dashboard:** Streamlit interface for uploading and analyzing media through the trained model.
+* **Visual encoder:** EfficientNet-B0 extracts facial image representations.
+* **Audio encoder:** Wav2Vec2 extracts speech/audio representations.
+* **Cross-modal interaction:** Embedding-level interaction between global audio and visual representations, implemented using bidirectional attention modules.
+* **Contrastive learning:** Projection heads and a symmetric InfoNCE objective encourage corresponding audio and visual representations to occupy a shared latent space.
+* **Adaptive Evidence Reasoning (AER):** Learns modality-specific evidence transformations, interaction features, and sample-dependent audio/visual importance weights.
+* **Binary classifier:** Predicts whether the input is Fake or Real from the fused reasoning representation.
+* **Correctness-estimation head:** Produces a learned score trained in relation to whether a prediction is correct. This score is not a guarantee of calibrated uncertainty.
+* **Inference dashboard:** A Streamlit interface for uploading and analyzing media using the trained model.
 
-> **Attention scope:** The current cross-modal attention operates on one global token per modality. It is therefore embedding-level interaction, not frame-to-frame, phoneme-to-frame, or fine-grained temporal alignment.
+> **Attention scope:** The current attention modules operate on one global token per modality. With only one token in each attention sequence, the attention distribution is trivial. This is embedding-level cross-modal interaction, not frame-to-frame, phoneme-to-frame, or fine-grained temporal alignment.
+
+> **Terminology:** Adaptive Evidence Reasoning describes learned neural transformations and modality weighting. The current implementation does not establish structural causal modeling, causal interventions, or counterfactual inference.
 
 ---
 
 ## Architecture
 
 ```text
-             Input Video
-                 |
-        Frame / Face Processing
-                 |
-          EfficientNet-B0
-                 |
-         Visual Embedding
-                 |
-                 +-----------------------------+
-                                               |
-                                               v
-Audio Input                              Cross-Modal
-    |                                     Interaction
-Audio Processing                               |
-    |                                          |
-  Wav2Vec2                                     |
-    |                                          |
-Audio Embedding                                |
-    |                                          |
-    +------------------------------------------+
-                                               |
-                                Contrastive Projection Heads
-                                               |
-                                   Symmetric InfoNCE Loss
-                                               |
-                                Adaptive Evidence Reasoning
-                                               |
-                             Weighted Multimodal Representation
-                                               |
-                                    Binary Classifier
-                                               |
-                                  Correctness Estimation
+                   Input Video
+                       |
+               Frame / Face Processing
+                       |
+                 EfficientNet-B0
+                       |
+                Visual Embedding
+                       |
+                       +--------------------------+
+                                                  |
+                                                  v
+Audio Input                                  Cross-Modal
+    |                                        Interaction
+Audio Processing                                  |
+    |                                             |
+  Wav2Vec2                                        |
+    |                                             |
+Audio Embedding                                   |
+    |                                             |
+    +---------------------------------------------+
+                                                  |
+                                   Contrastive Projection Heads
+                                                  |
+                                      Symmetric InfoNCE Loss
+                                                  |
+                                    Adaptive Evidence Reasoning
+                                                  |
+                                Weighted Multimodal Representation
+                                                  |
+                                        Binary Classifier
+                                                  |
+                                     Fake / Real Prediction
+                                                  |
+                                   Correctness-Estimation Score
 ```
 
-The diagram is a high-level representation of the processing flow. It does not imply causal inference or explicit temporal synchronization.
+This diagram presents the high-level processing flow. The contrastive objective contributes to training, while the classifier produces the final binary prediction. The correctness-estimation head provides an additional learned score.
+
+The architecture does not imply causal inference or explicit temporal synchronization between audio and video.
 
 ---
 
 ## Dataset and evaluation
 
-The current experiments use **FakeAVCeleb**. The reported evaluation uses a video-disjoint partitioning protocol, meaning videos are separated across the train, validation, and test splits.
+The current experiments use **FakeAVCeleb**. The processed dataset is partitioned by video ID so that samples derived from a video are assigned to the same split.
 
-The current processed dataset contains 22,679 samples:
+### Dataset split
 
 | Split      |    Samples |
 | ---------- | ---------: |
@@ -83,46 +89,70 @@ The current processed dataset contains 22,679 samples:
 | Test       |      8,897 |
 | **Total**  | **22,679** |
 
-The test distribution is imbalanced, with 8,360 Real and 537 Fake samples as recorded in the committed classification report. Balanced accuracy, Macro-F1, and MCC are therefore reported alongside accuracy.
+### Test-set label distribution
 
-The split is video-disjoint; identity-disjoint separation has not been established. The current results should be interpreted as **within-dataset evaluation on FakeAVCeleb**, not evidence of generalization to unseen datasets, identities, or generators.
+| Class     | Label ID | Test samples |
+| --------- | -------: | -----------: |
+| Fake      |        0 |        8,360 |
+| Real      |        1 |          537 |
+| **Total** |          |    **8,897** |
+
+The test set is substantially imbalanced. For that reason, accuracy is reported alongside balanced accuracy, class-specific F1, Macro-F1, ROC-AUC, PR-AUC, and Matthews Correlation Coefficient (MCC).
+
+The split is video-disjoint according to the dataset-building protocol. Identity-disjoint separation has not been established. Results should therefore be interpreted as **within-dataset evaluation on the processed FakeAVCeleb partition**, not as evidence of generalization to unseen identities, generators, datasets, or real-world media.
 
 ---
 
-## Reported results
+## Main evaluation results
 
-The following aggregate metrics are from the committed evaluation results for the current checkpoint, selected at epoch 21.
+The following metrics are from the committed evaluation results for the current checkpoint, selected at epoch 21.
 
 | Metric                           | Result |
 | -------------------------------- | -----: |
+| Test samples                     |  8,897 |
 | Accuracy                         | 99.04% |
 | Balanced Accuracy                | 98.71% |
+| Fake Precision                   | 99.89% |
+| Fake Recall                      | 99.09% |
+| Fake F1-score                    | 99.49% |
+| Real Precision                   | 87.42% |
+| Real Recall                      | 98.32% |
+| Real F1-score                    | 92.55% |
 | Macro-F1                         | 96.02% |
-| ROC-AUC                          | 99.83% |
-| PR-AUC                           | 94.93% |
+| ROC-AUC (Real positive class)    | 99.83% |
+| PR-AUC (Real positive class)     | 94.93% |
 | Matthews Correlation Coefficient | 0.9222 |
 
-These values describe the evaluated FakeAVCeleb test partition. They should not be interpreted as expected performance on other datasets or real-world media.
+### Confusion matrix
 
-Class-specific metrics and the confusion-matrix class ordering should be checked against the final dataset-label mapping before publication.
+Class order: **Fake (0), Real (1)**. Rows represent actual labels and columns represent predicted labels.
+
+| Actual \ Predicted |  Fake | Real |
+| ------------------ | ----: | ---: |
+| Fake               | 8,284 |   76 |
+| Real               |     9 |  528 |
+
+The test metrics describe this specific processed FakeAVCeleb test partition. They should not be interpreted as expected performance on other datasets or as proof of reliable detection in every real-world setting.
+
+The reported precision, recall, and F1 values for Fake and Real are class-specific. ROC-AUC and PR-AUC use **Real (label 1)** as the positive class.
 
 ---
 
 ## Additional analyses
 
-The repository includes supporting experiments and visualizations:
+The repository includes supporting experiments and analysis artifacts, including:
 
-* **Component ablation:** compares visual-only, audio-only, multimodal, contrastive, adaptive-reasoning, and full configurations.
-* **Leading-silence robustness check:** evaluates the same checkpoint after leading-silence trimming.
-* **Calibration analysis:** includes ECE, Brier score, reliability diagrams, and classification-probability calibration results.
-* **Selective-risk analysis:** examines performance under confidence-based selection.
-* **Manipulation-type analysis:** reports results across RealVideo–RealAudio, FakeVideo–RealAudio, RealVideo–FakeAudio, and FakeVideo–FakeAudio conditions.
-* **Representation visualizations:** include contrastive similarity and embedding visualizations.
-* **Modality-weight analysis:** summarizes learned adaptive audio and visual importance weights.
+* **Component ablation:** Comparisons of visual-only, audio-only, multimodal, contrastive, adaptive-reasoning, and full configurations.
+* **Leading-silence robustness check:** A limited sensitivity analysis involving leading-silence trimming.
+* **Calibration analysis:** Evaluation using metrics such as Expected Calibration Error (ECE) and Brier score, alongside calibration visualizations.
+* **Selective-risk analysis:** Analysis of model performance under confidence-based selection.
+* **Manipulation-type analysis:** Evaluation across RealVideo–RealAudio, FakeVideo–RealAudio, RealVideo–FakeAudio, and FakeVideo–FakeAudio conditions.
+* **Representation visualizations:** Contrastive similarity and embedding visualizations.
+* **Modality-weight analysis:** Analysis of learned adaptive audio and visual importance weights.
 
-The ablation is a controlled component study using the completed evaluation setup, not a claim that every component was independently retrained end-to-end. The measured results should be interpreted directly; they do not establish that every added module produces a monotonic improvement.
+Ablation results should be interpreted as comparisons within the documented experimental setup. They do not establish that every added component independently improves performance, nor should they be treated as independently retrained end-to-end results unless the corresponding experiment confirms that procedure.
 
-The leading-silence test is a limited sensitivity check. It does not prove that all dataset shortcuts have been eliminated.
+The leading-silence experiment is a limited sensitivity check; it does not prove that all dataset shortcuts have been eliminated. Learned modality weights are model signals and should not automatically be interpreted as causal explanations.
 
 ---
 
@@ -134,6 +164,7 @@ PrismShieldAI/
 │   └── app2.py
 ├── audio/
 ├── configs/
+├── datasets/
 ├── evaluation/
 ├── inference/
 ├── losses/
@@ -141,6 +172,7 @@ PrismShieldAI/
 ├── notebooks/
 ├── research_paper/
 │   ├── figures/
+│   ├── historical/
 │   ├── results/
 │   └── scripts/
 ├── tests/
@@ -151,7 +183,9 @@ PrismShieldAI/
 └── README.md
 ```
 
-The `research_paper` directory contains evaluation scripts, aggregate result files, and figures used to prepare the manuscript. Large intermediate artifacts, such as embeddings and per-sample predictions, are retained separately from the aggregate research summaries.
+The `research_paper` directory contains research evaluation scripts, aggregate result files, figures, and archived historical artifacts. Large intermediate files and per-sample outputs are kept separately from the canonical aggregate summaries where applicable.
+
+Exact contents may change as the repository evolves; consult the repository tree for the current file-level structure.
 
 ---
 
@@ -166,37 +200,59 @@ The `research_paper` directory contains evaluation scripts, aggregate result fil
 * Streamlit
 * NumPy
 * Pandas
+* Scikit-learn
 * Matplotlib / Seaborn (where used in analysis scripts)
 
 ---
 
 ## Running the dashboard
 
-Create and activate a Python virtual environment, install the project's required dependencies, and ensure the required model checkpoint and media-processing dependencies are available.
+### 1. Clone the repository
 
-From the repository root, launch the Streamlit interface:
+```powershell
+git clone https://github.com/ShivaayaPangasa/PrismShieldAI.git
+cd PrismShieldAI
+```
+
+### 2. Create and activate a virtual environment
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+### 3. Install dependencies
+
+Install the dependencies specified by the repository's dependency file, if available. Otherwise, consult the project configuration and scripts to install the required compatible versions of PyTorch, Transformers, Streamlit, and the other libraries.
+
+### 4. Prepare required assets
+
+Ensure the required model checkpoint, dataset-derived inputs, and media-processing dependencies are available. Dataset files and model weights may not be included in the repository.
+
+### 5. Launch the Streamlit interface
+
+From the repository root:
 
 ```powershell
 streamlit run app/app2.py
 ```
 
-The dashboard is a research prototype. Its outputs are model predictions and learned estimates, not definitive proof that media is authentic or manipulated.
+The dashboard is a research prototype. Its output is a model prediction and a learned score, not definitive proof that media is authentic or manipulated.
 
 ---
 
 ## Reproducibility and artifacts
 
-The repository includes scripts for:
+The repository contains scripts and artifacts for the main evaluation, component ablation, robustness checks, and research-figure generation.
 
-* Main evaluation
-* Leading-silence robustness evaluation
-* Main-result reproduction
-* Component ablation
-* Final paper-figure generation
+Relevant aggregate results and figures are stored under:
 
-Relevant aggregate metrics and figures are stored under `research_paper/results/` and `research_paper/figures/`.
+* `research_paper/results/`
+* `research_paper/figures/`
 
-To reproduce results, use the same dataset preprocessing, split definitions, model checkpoint, dependencies, and evaluation settings as the reported experiment. The repository's scripts should be consulted for their exact arguments and configuration.
+For reproduction, use the same dataset version, preprocessing, split definitions, checkpoint, dependencies, and evaluation settings as the reported experiment. Consult the individual scripts and configuration files for exact implementation details.
+
+The main evaluation metrics are recorded in the evaluation JSON artifact. Ablation summaries are separate from the main-model evaluation and should not be substituted for the main results.
 
 Model weights and datasets may not be included in the repository. Ensure that you have legitimate access to the dataset and the required checkpoint before attempting reproduction.
 
@@ -206,30 +262,32 @@ Model weights and datasets may not be included in the repository. Ensure that yo
 
 The current work has several limitations:
 
-* Evaluation is restricted to FakeAVCeleb.
-* The split is video-disjoint, but identity-disjoint separation has not been verified.
+* Evaluation is restricted to a processed FakeAVCeleb dataset partition.
+* The split is video-disjoint, but identity-disjoint separation has not been established.
 * Cross-dataset and unseen-generator generalization have not been evaluated.
-* Cross-modal interaction is performed on global embeddings rather than fine-grained temporal tokens.
+* Cross-modal interaction uses global embeddings rather than fine-grained temporal tokens.
+* One-token attention does not provide a meaningful learned distribution over multiple temporal elements.
 * The leading-silence experiment is a limited shortcut-sensitivity check.
-* Adaptive modality weights are learned model signals and should not automatically be interpreted as causal explanations.
-* Correctness estimation does not guarantee calibrated uncertainty or reliable explanations for individual predictions.
-* Performance on a benchmark does not establish suitability for high-stakes forensic or identity decisions.
+* Adaptive modality weights are learned model signals, not causal explanations.
+* The correctness-estimation head does not guarantee calibrated uncertainty or reliable explanations for individual predictions.
+* Benchmark performance does not establish suitability for high-stakes forensic, legal, identity, or other consequential decisions.
+* Further independent validation is required before making claims about performance outside the evaluated setting.
 
 ---
 
 ## Future work
 
-Potential directions include:
+Potential directions for future development include:
 
 * Cross-dataset and unseen-generator evaluation
 * Identity-disjoint evaluation
 * Fine-grained temporal audio-visual interaction
-* Further shortcut and distribution-shift testing
+* Additional shortcut and distribution-shift testing
 * Improved uncertainty estimation and calibration
 * More extensive interpretability and failure analysis
 * Evaluation on broader real-world media conditions
 
-These are future directions, not capabilities claimed as completed in the current version.
+These are future research directions and are not claimed as completed capabilities of the current version.
 
 ---
 
@@ -239,13 +297,13 @@ These are future directions, not capabilities claimed as completed in the curren
 
 *PrismShieldAI: Contrastive and Adaptive Multimodal Evidence Reasoning for Audio-Visual Deepfake Detection*
 
-The manuscript is being prepared around the current implementation and evaluation. The final paper will document the model design, experimental protocol, results, limitations, and related work.
+The manuscript is being prepared around the current implementation and evaluation. It will document the model design, experimental protocol, results, limitations, and related work.
 
 ---
 
 ## Disclaimer
 
-PrismShieldAI is an experimental research prototype. It is not a forensic certification tool and should not be used as the sole basis for consequential decisions about the authenticity of media.
+PrismShieldAI is an experimental research prototype for audio-visual deepfake detection. It is not a forensic certification tool and should not be used as the sole basis for consequential decisions about the authenticity of media.
 
 ## Author
 
